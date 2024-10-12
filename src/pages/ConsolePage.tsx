@@ -507,8 +507,8 @@ export function ConsolePage() {
     <div data-component="ConsolePage">
       <div className="content-top">
         <div className="content-title">
-          <img src="/openai-logomark.svg" />
-          <span>realtime console</span>
+          <img src="/tandemlogo-05-02.svg" />
+          <span>Tandem Tutor Playground</span>
         </div>
         <div className="content-api-key">
           {!LOCAL_RELAY_SERVER_URL && (
@@ -533,9 +533,9 @@ export function ConsolePage() {
                 <canvas ref={serverCanvasRef} />
               </div>
             </div>
-            <div className="content-block-title">events</div>
+            <div className="content-block-title">events log</div>
             <div className="content-block-body" ref={eventsScrollRef}>
-              {!realtimeEvents.length && `awaiting connection...`}
+              {!realtimeEvents.length && `awaiting realtime connection...`}
               {realtimeEvents.map((realtimeEvent, i) => {
                 const count = realtimeEvent.count;
                 const event = { ...realtimeEvent.event };
