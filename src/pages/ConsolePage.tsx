@@ -195,7 +195,6 @@ export function ConsolePage() {
     setIsConnected(false);
     setRealtimeEvents([]);
     setItems([]);
-    setMarker(null);
 
     const client = clientRef.current;
     client.disconnect();
@@ -607,6 +606,36 @@ export function ConsolePage() {
               }
             />
           </div>
+          // Inserted Instructions 
+          <div className="content-instructions">
+            <div className="content-block instructions">
+              <div className="content-block-title">Model Instructions</div>
+              <div className="content-block-body">
+                {instructions}
+              </div>
+            </div>
+          </div>
+          return (
+            <div data-component="ConsolePage">
+              <div className="content-top">
+                {/* ... existing code */}
+              </div>
+              <div className="content-main">
+                <div className="content-logs">
+                  {/* ... existing logs and actions */}
+                </div>
+                {/* Add the instructions section here */}
+                <div className="content-instructions">
+                  <div className="content-block instructions">
+                    <div className="content-block-title">Model Instructions</div>
+                    <div className="content-block-body">
+                      {instructions}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
         </div>
       </div>
     </div>

@@ -43,7 +43,7 @@
     .content-block {
       position: relative;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       max-height: 100%;
       width: 100%;
       .content-block-title {
@@ -67,6 +67,7 @@
     }
     .content-logs {
       flex-grow: 1;
+      min-width: 0;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -229,6 +230,34 @@
         height: 100%;
         color: currentColor;
       }
+    }
+  }
+}
+
+.content-instructions {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  margin-left: 24px;
+
+  .content-block.instructions {
+    background-color: #f9f9f9;
+    border-radius: 16px;
+    overflow: auto;
+    padding: 16px;
+
+    .content-block-title {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .content-block-body {
+      font-size: 14px;
+      line-height: 1.5;
+      color: #333;
+      white-space: pre-wrap;
     }
   }
 }
