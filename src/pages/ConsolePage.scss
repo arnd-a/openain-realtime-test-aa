@@ -48,13 +48,26 @@
       flex: 1 1 0%;
       min-width: 0;
       overflow: hidden;
+      position: relative;
 
       .content-block.conversation {
         flex: 1 1 0%;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
         min-height: 0;
-        overflow: auto;
+
+        .content-block-body {
+          flex: 1 1 auto;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+
+          .conversation-content {
+            flex: 1 1 auto;
+            overflow: auto;
+          }
+        }
       }
 
       .content-actions {
@@ -180,7 +193,7 @@
       padding: 8px 0px;
       padding-top: 4px;
       line-height: 1.2em;
-      overflow: auto;
+      overflow: hidden;
 
       &.full {
         padding: 0px;
