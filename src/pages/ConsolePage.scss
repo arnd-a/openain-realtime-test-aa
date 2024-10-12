@@ -148,22 +148,36 @@
       margin-left: 24px;
 
       .content-block.instructions {
-        background-color: #f9f9f9;
-        border-radius: 16px;
-        overflow: auto;
-        padding: 16px;
-
         .content-block-title {
-          font-weight: bold;
-          font-size: 16px;
-          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          .instruction-buttons {
+            display: flex;
+            gap: 8px;
+          }
         }
 
         .content-block-body {
-          font-size: 14px;
-          line-height: 1.5;
-          color: #333;
-          white-space: pre-wrap;
+          pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+          }
+
+          textarea {
+            width: 100%;
+            height: 100%;
+            resize: none;
+            border: 1px solid #ccc;
+            padding: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+          }
         }
       }
     }
