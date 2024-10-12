@@ -1,16 +1,3 @@
-/**
- * Running a local relay server will allow you to hide your API key
- * and run custom logic on the server
- *
- * Set the local relay server address to:
- * REACT_APP_LOCAL_RELAY_SERVER_URL=http://localhost:8081
- *
- * This will also require you to set OPENAI_API_KEY= in a `.env` file
- * You can run it with `npm run relay`, in parallel with `npm start`
- */
-const LOCAL_RELAY_SERVER_URL: string =
-  process.env.REACT_APP_LOCAL_RELAY_SERVER_URL || '';
-
 import { useEffect, useRef, useCallback, useState } from 'react';
 
 import { RealtimeClient } from '@openai/realtime-api-beta';
@@ -24,24 +11,6 @@ import { Button } from '../components/button/Button';
 import { Toggle } from '../components/toggle/Toggle';
 
 import './ConsolePage.scss';
-import { isJsxOpeningLikeElement } from 'typescript';
-
-/**
- * Type for result from get_weather() function call
- */
-interface Coordinates {
-  lat: number;
-  lng: number;
-  location?: string;
-  temperature?: {
-    value: number;
-    units: string;
-  };
-  wind_speed?: {
-    value: number;
-    units: string;
-  };
-}
 
 /**
  * Type for all event logs
@@ -58,11 +27,7 @@ export function ConsolePage() {
    * Ask user for API Key
    * If we're using the local relay server, we don't need this
    */
-  const apiKey = LOCAL_RELAY_SERVER_URL
-    ? ''
-    : localStorage.getItem('tmp::voice_api_key') ||
-      prompt('OpenAI API Key') ||
-      '';
+  const apiKey = localStorage.getItem('tmp::voice_api_key') || prompt('OpenAI API Key') || '';
   if (apiKey !== '') {
     localStorage.setItem('tmp::voice_api_key', apiKey);
   }
@@ -80,14 +45,10 @@ export function ConsolePage() {
     new WavStreamPlayer({ sampleRate: 24000 })
   );
   const clientRef = useRef<RealtimeClient>(
-    new RealtimeClient(
-      LOCAL_RELAY_SERVER_URL
-        ? { url: LOCAL_RELAY_SERVER_URL }
-        : {
-            apiKey: apiKey,
-            dangerouslyAllowAPIKeyInBrowser: true,
-          }
-    )
+    new RealtimeClient({
+      apiKey: apiKey,
+      dangerouslyAllowAPIKeyInBrowser: true,
+    })
   );
 
   /**
@@ -103,11 +64,7 @@ export function ConsolePage() {
   const startTimeRef = useRef<string>(new Date().toISOString());
 
   /**
-   * All of our variables for displaying application state
-   * - items are all conversation items (dialog)
-   * - realtimeEvents are event logs, which can be expanded
-   * - memoryKv is for set_memory() function
-   * - coords, marker are for get_weather() function
+   * Application state variables
    */
   const [items, setItems] = useState<ItemType[]>([]);
   const [realtimeEvents, setRealtimeEvents] = useState<RealtimeEvent[]>([]);
@@ -117,7 +74,6 @@ export function ConsolePage() {
   const [isConnected, setIsConnected] = useState(false);
   const [canPushToTalk, setCanPushToTalk] = useState(true);
   const [isRecording, setIsRecording] = useState(false);
-  
 
   /**
    * Utility for formatting the timing of logs
@@ -153,8 +109,7 @@ export function ConsolePage() {
   }, []);
 
   /**
-   * Connect to conversation:
-   * WavRecorder taks speech input, WavStreamPlayer output, client is API client
+   * Connect to conversation
    */
   const connectConversation = useCallback(async () => {
     const client = clientRef.current;
@@ -179,7 +134,6 @@ export function ConsolePage() {
       {
         type: `input_text`,
         text: `Hello!`,
-        // text: `For testing purposes, I want you to list ten car brands. Number each item, e.g. "one (or whatever number you are one): the item name".`
       },
     ]);
 
@@ -213,7 +167,6 @@ export function ConsolePage() {
 
   /**
    * In push-to-talk mode, start recording
-   * .appendInputAudio() for each sample
    */
   const startRecording = async () => {
     setIsRecording(true);
@@ -357,7 +310,6 @@ export function ConsolePage() {
 
   /**
    * Core RealtimeClient and audio capture setup
-   * Set all of our instructions, tools, events and more
    */
   useEffect(() => {
     // Get refs
@@ -366,17 +318,15 @@ export function ConsolePage() {
 
     // Set instructions
     client.updateSession({ instructions: instructions });
-    // Set transcription, otherwise we don't get user transcriptions back
+    // Set transcription
     client.updateSession({ input_audio_transcription: { model: 'whisper-1' } });
 
-    
-
-    // handle realtime events from client + server for event logging
+    // Handle realtime events for event logging
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
       setRealtimeEvents((realtimeEvents) => {
         const lastEvent = realtimeEvents[realtimeEvents.length - 1];
         if (lastEvent?.event.type === realtimeEvent.event.type) {
-          // if we receive multiple events in a row, aggregate them for display purposes
+          // Aggregate similar events
           lastEvent.count = (lastEvent.count || 0) + 1;
           return realtimeEvents.slice(0, -1).concat(lastEvent);
         } else {
@@ -411,7 +361,7 @@ export function ConsolePage() {
     setItems(client.conversation.getItems());
 
     return () => {
-      // cleanup; resets to defaults
+      // Cleanup
       client.reset();
     };
   }, []);
@@ -427,18 +377,85 @@ export function ConsolePage() {
           <span>Tandem Tutor Playground</span>
         </div>
         <div className="content-api-key">
-          {!LOCAL_RELAY_SERVER_URL && (
-            <Button
-              icon={Edit}
-              iconPosition="end"
-              buttonStyle="flush"
-              label={`api key: ${apiKey.slice(0, 3)}...`}
-              onClick={() => resetAPIKey()}
-            />
-          )}
+          <Button
+            icon={Edit}
+            iconPosition="end"
+            buttonStyle="flush"
+            label={`api key: ${apiKey.slice(0, 3)}...`}
+            onClick={() => resetAPIKey()}
+          />
         </div>
       </div>
       <div className="content-main">
+        <div className="content-block conversation">
+          <div className="content-block-title">conversation</div>
+          <div className="content-block-body" data-conversation-content>
+            {!items.length && `awaiting connection...`}
+            {items.map((conversationItem, i) => {
+              return (
+                <div
+                  className="conversation-item"
+                  key={conversationItem.id}
+                >
+                  <div
+                    className={`speaker ${conversationItem.role || ''}`}
+                  >
+                    <div>
+                      {(
+                        conversationItem.role || conversationItem.type
+                      ).replaceAll('_', ' ')}
+                    </div>
+                    <div
+                      className="close"
+                      onClick={() =>
+                        deleteConversationItem(conversationItem.id)
+                      }
+                    >
+                      <X />
+                    </div>
+                  </div>
+                  <div className={`speaker-content`}>
+                    {/* tool response */}
+                    {conversationItem.type === 'function_call_output' && (
+                      <div>{conversationItem.formatted.output}</div>
+                    )}
+                    {/* tool call */}
+                    {!!conversationItem.formatted.tool && (
+                      <div>
+                        {conversationItem.formatted.tool.name}(
+                        {conversationItem.formatted.tool.arguments})
+                      </div>
+                    )}
+                    {!conversationItem.formatted.tool &&
+                      conversationItem.role === 'user' && (
+                        <div>
+                          {conversationItem.formatted.transcript ||
+                            (conversationItem.formatted.audio?.length
+                              ? '(awaiting transcript)'
+                              : conversationItem.formatted.text ||
+                                '(item sent)')}
+                        </div>
+                      )}
+                    {!conversationItem.formatted.tool &&
+                      conversationItem.role === 'assistant' && (
+                        <div>
+                          {conversationItem.formatted.transcript ||
+                            conversationItem.formatted.text ||
+                            '(truncated)'}
+                        </div>
+                      )}
+                    {conversationItem.formatted.file && (
+                      <audio
+                        src={conversationItem.formatted.file.url}
+                        controls
+                      />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
         <div className="content-logs">
           <div className="content-block events">
             <div className="visualization">
@@ -469,7 +486,7 @@ export function ConsolePage() {
                       <div
                         className="event-summary"
                         onClick={() => {
-                          // toggle event details
+                          // Toggle event details
                           const id = event.event_id;
                           const expanded = { ...expandedEvents };
                           if (expanded[id]) {
@@ -514,70 +531,6 @@ export function ConsolePage() {
               })}
             </div>
           </div>
-          <div className="content-block conversation">
-            <div className="content-block-title">conversation</div>
-            <div className="content-block-body" data-conversation-content>
-              {!items.length && `awaiting connection...`}
-              {items.map((conversationItem, i) => {
-                return (
-                  <div className="conversation-item" key={conversationItem.id}>
-                    <div className={`speaker ${conversationItem.role || ''}`}>
-                      <div>
-                        {(
-                          conversationItem.role || conversationItem.type
-                        ).replaceAll('_', ' ')}
-                      </div>
-                      <div
-                        className="close"
-                        onClick={() =>
-                          deleteConversationItem(conversationItem.id)
-                        }
-                      >
-                        <X />
-                      </div>
-                    </div>
-                    <div className={`speaker-content`}>
-                      {/* tool response */}
-                      {conversationItem.type === 'function_call_output' && (
-                        <div>{conversationItem.formatted.output}</div>
-                      )}
-                      {/* tool call */}
-                      {!!conversationItem.formatted.tool && (
-                        <div>
-                          {conversationItem.formatted.tool.name}(
-                          {conversationItem.formatted.tool.arguments})
-                        </div>
-                      )}
-                      {!conversationItem.formatted.tool &&
-                        conversationItem.role === 'user' && (
-                          <div>
-                            {conversationItem.formatted.transcript ||
-                              (conversationItem.formatted.audio?.length
-                                ? '(awaiting transcript)'
-                                : conversationItem.formatted.text ||
-                                  '(item sent)')}
-                          </div>
-                        )}
-                      {!conversationItem.formatted.tool &&
-                        conversationItem.role === 'assistant' && (
-                          <div>
-                            {conversationItem.formatted.transcript ||
-                              conversationItem.formatted.text ||
-                              '(truncated)'}
-                          </div>
-                        )}
-                      {conversationItem.formatted.file && (
-                        <audio
-                          src={conversationItem.formatted.file.url}
-                          controls
-                        />
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
           <div className="content-actions">
             <Toggle
               defaultValue={false}
@@ -606,36 +559,15 @@ export function ConsolePage() {
               }
             />
           </div>
-          // Inserted Instructions 
-          <div className="content-instructions">
-            <div className="content-block instructions">
-              <div className="content-block-title">Model Instructions</div>
-              <div className="content-block-body">
-                {instructions}
-              </div>
+        </div>
+        {/* Inserted Instructions Section */}
+        <div className="content-instructions">
+          <div className="content-block instructions">
+            <div className="content-block-title">Model Instructions</div>
+            <div className="content-block-body">
+              {instructions}
             </div>
           </div>
-          return (
-            <div data-component="ConsolePage">
-              <div className="content-top">
-                {/* ... existing code */}
-              </div>
-              <div className="content-main">
-                <div className="content-logs">
-                  {/* ... existing logs and actions */}
-                </div>
-                {/* Add the instructions section here */}
-                <div className="content-instructions">
-                  <div className="content-block instructions">
-                    <div className="content-block-title">Model Instructions</div>
-                    <div className="content-block-body">
-                      {instructions}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
         </div>
       </div>
     </div>
