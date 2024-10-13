@@ -404,7 +404,7 @@ export function ConsolePage() {
       <div className="content-top">
         <div className="content-title">
           <img src="/tandemlogo-05-02.svg" alt="Logo" />
-          <span>AI Tandem Partner</span>
+          <span>Tandem Tutor Playground</span>
         </div>
         <div className="content-api-key">
           <Button
@@ -491,8 +491,8 @@ export function ConsolePage() {
           </div>
           <div className="content-actions">
             <Toggle
-              defaultValue={true}
-              labels={['Push to Talk', 'Realtime']}
+              defaultValue={false}
+              labels={['manual', 'vad']}
               values={['none', 'server_vad']}
               onChange={(_, value) => changeTurnEndType(value)}
             />
